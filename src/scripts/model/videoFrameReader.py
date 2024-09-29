@@ -52,8 +52,6 @@ def readAndDetectObjects(videoPath):
             # Enviar o frame via gRPC
             response = stub.StreamFrame(video_pb2.FrameRequest(frame=frame_base64))
             print(f"Resposta do servidor: {response.status}")
-            # Exibir o frame com as detecções
-            # cv2.imshow('Frame', frame)
             
             # Pressionar 'q' para sair
             if cv2.waitKey(25) & 0xFF == ord('q'):
