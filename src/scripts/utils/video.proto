@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package video;
+
+service VideoStream {
+  // Definindo o método para enviar frames
+  rpc StreamFrame (FrameRequest) returns (FrameResponse) {}
+}
+
+// A mensagem contendo o frame codificado em base64
+message FrameRequest {
+  string frame = 1; // Frame codificado em base64
+}
+
+// A resposta pode ser opcional, com um simples status
+message FrameResponse {
+  string status = 1; // Status da transmissão do frame
+}
