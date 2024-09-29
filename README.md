@@ -14,5 +14,10 @@ Go to the main folder and write the command bellow:
 On the folder `src/scripts/utils`, write the command:
 `python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. video.proto`
 
-# 
+# Run the scripts:
+Open to terminals, one to run the script `server.py`:
+`python3 src/scripts/server.py`
+
+Then, run the script `client.py`:
+`python3 src/scripts/client.py`
 
