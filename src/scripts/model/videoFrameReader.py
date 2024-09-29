@@ -1,7 +1,15 @@
 import os
 import cv2
 import time
+import base64
 from ultralytics import YOLO
+import grpc
+from . import video_pb2
+from . import video_pb2_grpc
+
+# Conectar ao servidor gRPC
+channel = grpc.insecure_channel('localhost:50051')
+stub = video_pb2_grpc.VideoStreamStub(channel)
 
 # Carregar o modelo YOLO
 model = YOLO("./weights/yolov8s.pt")
@@ -37,9 +45,15 @@ def readAndDetectObjects(videoPath):
                     confLabel = f'Conf: {confidence:.2f}'
                     cv2.putText(frame, confLabel, (x1-10, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
 
+            # Codificar o frame para base64
+            _, buffer = cv2.imencode('.jpg', frame)
+            frame_base64 = base64.b64encode(buffer).decode('utf-8')
             
+            # Enviar o frame via gRPC
+            response = stub.StreamFrame(video_pb2.FrameRequest(frame=frame_base64))
+            print(f"Resposta do servidor: {response.status}")
             # Exibir o frame com as detecções
-            cv2.imshow('Frame', frame)
+            # cv2.imshow('Frame', frame)
             
             # Pressionar 'q' para sair
             if cv2.waitKey(25) & 0xFF == ord('q'):
