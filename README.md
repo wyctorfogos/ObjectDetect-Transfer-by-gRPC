@@ -22,3 +22,5 @@ Then, run the script `client.py`:
 `python3 src/scripts/client.py`
 
 ![Recovered frame - example 1](https://github.com/wyctorfogos/ObjectDetect-Transfer-by-gRPC/blob/main/images/Screenshot%20from%202024-09-29%2017-44-31.png)
+
+![Example 2](https://github.com/wyctorfogos/ObjectDetect-Transfer-by-gRPC/blob/main/images/Screenshot%20from%202024-09-29%2017-46-35.png)
