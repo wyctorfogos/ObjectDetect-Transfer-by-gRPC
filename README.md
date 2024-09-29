@@ -1,9 +1,9 @@
 # ObjectDetect-Transfer-by-gRPC
 
-This project detects objects in frams and send its throught a gRPC conection to the server-size, which decodes and plot the transmited frame.
+This project detects objects in frames and send it's throught a gRPC conection to the server size, which decodes and plot the transmited frame.
 
 # conda env 
-The first step is: create a conda env with the necessary libraries to encode, send and decode the frames.
+The first step is: create a conda env with the necessary libraries to encode, send, and decode the frames.
 Command: `conda create -n gRPCAndYOLO`
 
 To install the libs:
@@ -21,4 +21,4 @@ Open to terminals, one to run the script `server.py`:
 Then, run the script `client.py`:
 `python3 src/scripts/client.py`
 
-![Recovered frame](https://github.com/wyctorfogos/ObjectDetect-Transfer-by-gRPC/blob/main/images/Screenshot%20from%202024-09-29%2017-44-31.png)
+![Recovered frame - example 1](https://github.com/wyctorfogos/ObjectDetect-Transfer-by-gRPC/blob/main/images/Screenshot%20from%202024-09-29%2017-44-31.png)
