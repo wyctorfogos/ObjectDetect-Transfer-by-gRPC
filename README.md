@@ -21,3 +21,4 @@ Open to terminals, one to run the script `server.py`:
 Then, run the script `client.py`:
 `python3 src/scripts/client.py`
 
+![Recovered frame](https://github.com/wyctorfogos/ObjectDetect-Transfer-by-gRPC/blob/main/images/Screenshot%20from%202024-09-29%2017-44-31.png)
