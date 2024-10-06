@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream de Vídeo via WebSocket</title>
+</head>
+<body>
+    <h1>Visualização do Stream de Vídeo</h1>
+    <img id="videoFrame" alt="Stream de Vídeo" style="width: 640px; height: 480px;">
+
+    <script>
+        const videoFrame = document.getElementById("videoFrame");
+        const socket = new WebSocket("ws://localhost:6789");
+
+        socket.onmessage = function(event) {
+            // Recebe o frame codificado em base64 do WebSocket
+            const frameData = event.data;
+            // Atualiza o elemento de imagem com o novo frame
+            videoFrame.src = 'data:image/jpeg;base64,' + frameData;
+        };
+
+        socket.onopen = function() {
+            console.log("Conexão WebSocket estabelecida.");
+        };
+
+        socket.onclose = function() {
+            console.log("Conexão WebSocket fechada.");
+        };
+
+        socket.onerror = function(error) {
+            console.error("Erro no WebSocket: ", error);
+        };
+    </script>
+</body>
+</html>

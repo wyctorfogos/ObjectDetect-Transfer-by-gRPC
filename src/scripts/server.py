@@ -3,30 +3,28 @@ from concurrent import futures
 import cv2
 import base64
 import numpy as np
-from queue import Queue
-from threading import Thread
+import asyncio
+import websockets
+import webbrowser
+import os
 from utils import video_pb2
 from utils import video_pb2_grpc
 
-# Fila para armazenamento dos frames
-frame_queue = Queue()
-
-# Função para exibir frames da fila
-def display_frames():
-    while True:
-        frame = frame_queue.get()
-        if frame is None:
-            break
-        cv2.imshow("Frame decodificado", frame)
-        cv2.waitKey(1)  # Pequeno atraso para permitir a exibição dos frames
-    cv2.destroyAllWindows()
-
 # Implementando o serviço de transmissão de vídeo
 class VideoStreamServicer(video_pb2_grpc.VideoStreamServicer):
-    def StreamFrame(self, request, context):
-        # Recebendo o frame em base64
-        print(f"Frame recebido de tamanho {len(request.frame)}")
-        
+    def __init__(self):
+        self.websocket_clients = set()
+
+    async def notify_clients(self, frame):
+        if self.websocket_clients:
+            try:
+                _, buffer = cv2.imencode('.jpg', frame)
+                frame_jpg = base64.b64encode(buffer).decode('utf-8')
+                await asyncio.wait([client.send(frame_jpg) for client in self.websocket_clients])
+            except Exception as e:
+                print(f"Erro ao enviar frame via WebSocket: {e}")
+
+    def StreamFrame(self, request, context):        
         try:
             # Decodificar o frame de base64 para bytes
             decoded_frame = base64.b64decode(request.frame)
@@ -38,8 +36,9 @@ class VideoStreamServicer(video_pb2_grpc.VideoStreamServicer):
             frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
             
             if frame is not None:
-                # Colocar o frame na fila para exibição
-                frame_queue.put(frame)
+                cv2.waitKey(1)  # Pequeno atraso para permitir a exibição dos frames
+                # Notificar clientes WebSocket
+                asyncio.run(self.notify_clients(frame))
             else:
                 print("Erro: não foi possível decodificar o frame.")
         
@@ -48,23 +47,32 @@ class VideoStreamServicer(video_pb2_grpc.VideoStreamServicer):
         
         return video_pb2.FrameResponse(status="Frame recebido com sucesso")
 
-# Iniciar o servidor gRPC
+# Iniciar o servidor gRPC e WebSocket
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    video_pb2_grpc.add_VideoStreamServicer_to_server(VideoStreamServicer(), server)
+    video_stream_servicer = VideoStreamServicer()
+    video_pb2_grpc.add_VideoStreamServicer_to_server(video_stream_servicer, server)
     server.add_insecure_port('[::]:50051')
     server.start()
     print("Servidor gRPC iniciado na porta 50051...")
-    
-    # Iniciar thread para exibir os frames
-    display_thread = Thread(target=display_frames, daemon=True)
-    display_thread.start()
 
-    try:
-        server.wait_for_termination()
-    except KeyboardInterrupt:
-        print("Encerrando servidor...")
-        frame_queue.put(None)  # Sinalizar para encerrar exibição
+    # Abrir a página web automaticamente
+    web_page_path = os.path.abspath("src/scripts/view/index.html")
+    webbrowser.open(f"file://{web_page_path}")
+
+    async def websocket_handler(websocket, path):
+        print("Novo cliente WebSocket conectado")
+        video_stream_servicer.websocket_clients.add(websocket)
+        try:
+            await websocket.wait_closed()
+        finally:
+            video_stream_servicer.websocket_clients.remove(websocket)
+            print("Cliente WebSocket desconectado")
+
+    start_server = websockets.serve(websocket_handler, "0.0.0.0", 6789)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(start_server)
+    loop.run_forever()
 
 if __name__ == '__main__':
     serve()
